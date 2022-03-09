@@ -6,6 +6,16 @@
 
 <a href="{% url 'journal_app:create' %}"> Create New Journal Entry</a>
 
+
+<h2> Apply Some Filters</h2>
+<form method = "POST">
+   {{ form }}
+   <input type = "submit" value = "Submit">
+</form>
+
+<a href="{% url 'journal_app:index' %}"> Go Back</a>
+
+
 <table>
     <thead>
        <tr>

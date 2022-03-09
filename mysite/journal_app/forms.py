@@ -5,4 +5,13 @@ class NewJournalForm(forms.Form):
     url = forms.CharField(label= 'url', required = False)
     software = forms.CharField(label='software', required = False)
     notes = forms.CharField(label='notes', required=False)
+
+
+class FilterForm(forms.Form):
+    term = forms.CharField(label='term', required = False)
+    python = forms.BooleanField(required=False)
+    django = forms.BooleanField(required=False)
+    html = forms.BooleanField(required=False)
+    css = forms.BooleanField(required=False)
+
     
