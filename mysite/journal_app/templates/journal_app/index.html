@@ -24,6 +24,7 @@
           <td>{{ journal.software }}</td>
           <td>{{ journal.notes }}</td>
           <td><a href="{% url 'journal_app:edit' journal.id %}"> edit</a></td>
+          <td><a href="{% url 'journal_app:delete' journal.id %}"> delete</a></td>
        </tr>
        {% endfor %}
     </tbody>

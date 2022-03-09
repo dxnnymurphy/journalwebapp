@@ -3,7 +3,6 @@
 <body>
 
 <h1>Create a new journal entry:</h1>
-<p>My first paragraph.</p>
 <form action="{% url 'journal_app:create' %}" method="post">{% csrf_token %}
     <label for="title">Enter title: </label>
     <input id="title" type="text" name="title" value="journal title.">

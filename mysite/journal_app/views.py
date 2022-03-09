@@ -8,8 +8,8 @@ def index(request):
     return render(request,'journal_app/index.html', {'Journals': journals})
 
 def create(request):
-    form = NewJournalForm(request.POST or None)
     if request.method == 'POST':
+        form = NewJournalForm(request.POST or None)
         if form.is_valid():
             entry = journal()
             entry.title = form.cleaned_data["title"]
@@ -43,3 +43,8 @@ def edit(request, journal_id):
             return render(request,'journal_app/index.html', {'Journals': journals})
     return render(request, "journal_app/edit.html", {'entry': entry_dict})
 
+def delete(request, journal_id):
+    entry = get_object_or_404(journal, pk=journal_id)
+    entry.delete()
+    journals = journal.objects.all()
+    return render(request,'journal_app/index.html', {'Journals': journals})
