@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Journals</h1>
+
+<a href="{% url 'journal_app:create' %}"> Create New Journal Entry</a>
+
+<table>
+    <thead>
+       <tr>
+          <th>Title</th>
+          <th>URL</th>
+          <th>Software</th>
+          <th>Notes</th>
+       </tr>
+    </thead>
+
+    <tbody>
+       {% for journal in Journals %}
+       <tr>
+          <td>{{ journal.title }}</td>
+          <td>{{ journal.url }}</td>
+          <td>{{ journal.software }}</td>
+          <td>{{ journal.notes }}</td>
+       </tr>
+       {% endfor %}
+    </tbody>
+ </table>
+
+
+</body>
+</html>
