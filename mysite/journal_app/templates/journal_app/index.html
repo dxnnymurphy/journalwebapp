@@ -23,6 +23,7 @@
           <td>{{ journal.url }}</td>
           <td>{{ journal.software }}</td>
           <td>{{ journal.notes }}</td>
+          <td><a href="{% url 'journal_app:edit' journal.id %}"> edit</a></td>
        </tr>
        {% endfor %}
     </tbody>
