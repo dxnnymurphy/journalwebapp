@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Edit a journal entry:</h1>
+<form action="{% url 'journal_app:edit' journal_id=entry.id %}" method="post">{% csrf_token %}
+    <label for="title">Change title: </label>
+    <input id="title" type="text" name="title" value={{entry.title}}>
+    <label for="url">Change url: </label>
+    <input id="url" type="text" name="url" value={{entry.url}}>
+    <label for="software">Change softwares used: </label>
+    <input id="software" type="text" name="software" value={{entry.software}}>
+    <label for="notes">Add notes:</label>
+    <input id="notes" type="text" name="notes" value={{entry.notes}}>
+    <input type="submit" value="OK">
+</form>
+</body>
+</html>
