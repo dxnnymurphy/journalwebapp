@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body>
-
+{% load static  %}
 <h1>Journals</h1>
 
 <a href="{% url 'journal_app:create' %}"> Create New Journal Entry</a>
@@ -15,7 +15,6 @@
 
 <a href="{% url 'journal_app:index' %}"> Go Back</a>
 
-
 <table>
     <thead>
        <tr>
@@ -23,6 +22,7 @@
           <th>URL</th>
           <th>Software</th>
           <th>Notes</th>
+          <th>Attachment</th>
        </tr>
     </thead>
 
@@ -30,9 +30,10 @@
        {% for journal in Journals %}
        <tr>
           <td>{{ journal.title }}</td>
-          <td>{{ journal.url }}</td>
+          <td><a href="{{journal.url}}"> {{ journal.url }}</a></td>
           <td>{{ journal.software }}</td>
           <td>{{ journal.notes }}</td>
+          <td><img src="{{journal.attachment.url}}"></td>
           <td><a href="{% url 'journal_app:edit' journal.id %}"> edit</a></td>
           <td><a href="{% url 'journal_app:delete' journal.id %}"> delete</a></td>
        </tr>

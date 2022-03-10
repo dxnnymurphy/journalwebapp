@@ -32,13 +32,15 @@ def filter(request):
 
 def create(request):
     if request.method == 'POST':
-        form = NewJournalForm(request.POST or None)
+        form = NewJournalForm(request.POST, request.FILES)
         if form.is_valid():
+            print(form.cleaned_data)
             entry = journal()
             entry.title = form.cleaned_data["title"]
             entry.url = form.cleaned_data["url"]
             entry.software = form.cleaned_data["software"]
             entry.notes = form.cleaned_data["notes"]
+            entry.attachment = request.FILES['file']
             entry.save()
             journals = journal.objects.all()
             return render(request,'journal_app/index.html', {'Journals': journals})
@@ -63,6 +65,8 @@ def edit(request, journal_id):
                 entry.software = form.cleaned_data["software"]
             if entry_dict["notes"] != form.cleaned_data["notes"]:
                 entry.notes = form.cleaned_data["notes"]
+            #if entry_dict["attachment"] != form.cleaned_data["upload"]:
+            #    entry.attachment = form.cleaned_data["upload"]
             entry.save()
             journals = journal.objects.all()
             return render(request,'journal_app/index.html', {'Journals': journals})

@@ -5,7 +5,7 @@ class NewJournalForm(forms.Form):
     url = forms.CharField(label= 'url', required = False)
     software = forms.CharField(label='software', required = False)
     notes = forms.CharField(label='notes', required=False)
-
+    file = forms.ImageField(label='file', required=False)
 
 class FilterForm(forms.Form):
     term = forms.CharField(label='term', required = False)
