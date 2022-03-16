@@ -14,11 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, re_path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from journal_app import views
 
 urlpatterns = [
-    path('journal_app', include('journal_app.urls')),
-    path('admin/', admin.site.urls),
+        path('admin/', admin.site.urls),
+        re_path(r'^api/journals/$', views.journals_list),
+        path('dj-rest-auth/', include('dj_rest_auth.urls')),
+        path('api/journals/<int:pk>/', views.journals_detail),
+        path('api/journals/<str:filter>/', views.journals_filter),
+        path('rest-auth/google/', views.GoogleLogin.as_view(), name='google_login'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

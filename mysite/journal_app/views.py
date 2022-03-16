@@ -1,81 +1,95 @@
-from re import search
-from django.shortcuts import get_object_or_404, render
-from journal_app.forms import NewJournalForm
-from journal_app.models import journal
-from .forms import FilterForm
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from django.db.models import Max, Q
+from .models import journal 
+from .serializers import *
+import operator
+from functools import reduce
 
-# Create your views here.
-def index(request):
-    journals = journal.objects.all()
-    search_flag = False
-    if request.method == 'POST':
-        form = FilterForm(request.POST)
-        if form.is_valid():
-            for key in form.cleaned_data:
-                if key == 'term' and form.cleaned_data[key]:
-                    term = form.cleaned_data["term"]
-                    journals = journal.objects.filter(title__contains=term)
-                    search_flag = True
-                if form.cleaned_data[key] is not False and key != 'term':
-                    if search_flag == True:
-                        journals2 = journal.objects.filter(software__contains=key)
-                        journals.union(journals2)
-                    else:
-                        journals = journal.objects.filter(software__contains=key)
-    techform = FilterForm()
-    context = {'Journals': journals, 'form': techform}
-    return render(request,'journal_app/index.html', context)
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from rest_auth.registration.views import SocialLoginView
 
-def filter(request):
-    journals = journal.objects.filter(software='python')
-    return render(request,'journal_app/index.html', {'Journals': journals})
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
 
-def create(request):
-    if request.method == 'POST':
-        form = NewJournalForm(request.POST, request.FILES)
-        if form.is_valid():
-            print(form.cleaned_data)
-            entry = journal()
-            entry.title = form.cleaned_data["title"]
-            entry.url = form.cleaned_data["url"]
-            entry.software = form.cleaned_data["software"]
-            entry.notes = form.cleaned_data["notes"]
-            entry.attachment = request.FILES['file']
-            entry.save()
-            journals = journal.objects.all()
-            return render(request,'journal_app/index.html', {'Journals': journals})
+@api_view(['GET', 'POST'])
+def journals_list(request, filter=None):
+    if request.method == 'GET':
+        if(filter):
+            print('I am being called')
+            data = journal.objects.filter(title__contains=filter)
         else:
-            return render(request, "journal_app/create.html")
-    return render(request, "journal_app/create.html")
+            data = journal.objects.all()
+        serializer = journalSerializer(
+            data, context={'request': request}, many=True)
+        print(serializer.data)
+
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        data = request.data
+        data['id'] = journal.objects.all().aggregate(Max('id'))['id__max'] + 1
+        techList = []
+        for i in range(len(data['technologies'])):
+            techList.append(data['technologies'][i]['label'])
+        data['technologiesList'] = techList
+        serializer = journalSerializer(data=data)
+        print(data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT', 'DELETE'])
+def journals_detail(request, pk):
+    try:
+        entry = journal.objects.get(pk=pk)
+    except journal.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        data = request.data
+        techList = []
+        for i in range(len(data['technologies'])):
+            techList.append(data['technologies'][i]['label'])
+        data['technologiesList'] = techList
+        print(data)
+        serializer = journalSerializer(
+            entry, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        print('we are deleting')
+        entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def edit(request, journal_id):
-    entry = get_object_or_404(journal, pk=journal_id)
-    entry_dict = entry.__dict__
-    print(entry_dict)
+@api_view(['GET', 'POST'])
+def journals_filter(request, filter=None):
     if request.method == 'POST':
-        form = NewJournalForm(request.POST or None)
-        if form.is_valid():
-            print(form.cleaned_data)
-            if entry_dict["title"] != form.cleaned_data["title"]:
-                entry.title = form.cleaned_data["title"]
-            if entry_dict["url"] != form.cleaned_data["url"]:
-                entry.url = form.cleaned_data["url"]
-            if entry_dict["software"] != form.cleaned_data["software"]:
-                entry.software = form.cleaned_data["software"]
-            if entry_dict["notes"] != form.cleaned_data["notes"]:
-                entry.notes = form.cleaned_data["notes"]
-            #if entry_dict["attachment"] != form.cleaned_data["upload"]:
-            #    entry.attachment = form.cleaned_data["upload"]
-            entry.save()
-            journals = journal.objects.all()
-            return render(request,'journal_app/index.html', {'Journals': journals})
-        else: 
-            print("not valid")
-    return render(request, "journal_app/edit.html", {'entry': entry_dict})
+        if(filter):
+            searchterm = request.data['term']
+            techList = []
+            for i in range(len(request.data['techList'])):
+                techList.append(request.data['techList'][i]['label'])
+            print(techList)
+            if techList and searchterm:
+                data = journal.objects.filter(title__contains=searchterm).filter(reduce(operator.or_, (Q(technologiesList__contains=x) for x in techList)))
+                print('both')
+            elif searchterm:
+                data = journal.objects.filter(title__contains=searchterm)
+            elif techList:
+                data = journal.objects.filter(reduce(operator.or_, (Q(technologiesList__contains=x) for x in techList)))
+        else:
+            data = journal.objects.all()
+        serializer = journalSerializer(data, context={'request': request}, many=True)
+        print(serializer.data)
 
-def delete(request, journal_id):
-    entry = get_object_or_404(journal, pk=journal_id)
-    entry.delete()
-    journals = journal.objects.all()
-    return render(request,'journal_app/index.html', {'Journals': journals})
+    return Response(serializer.data)
+
